@@ -1,7 +1,7 @@
 name: Deploy Astro site to GitHub Pages
 on:
   push:
-    branches: [main]
+    branches: [main]      # adjust if your primary branch differs
   workflow_dispatch:
 
 permissions:
@@ -10,10 +10,21 @@ permissions:
   id-token: write
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: withastro/action@v2
+      - name: Install, build, and upload
+        uses: withastro/action@v4      # upgrade from v2
         with:
-          path: .
+          node-version: 22            # or 18 to match local
+          # path: .                   # uncomment if Astro lives in a sub-folder
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
